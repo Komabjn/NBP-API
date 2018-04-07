@@ -23,29 +23,43 @@ public class Apinbp {
         if (response != null) {
             float[] bids = parseXMLData(response, "Bid");
             float[] asks = parseXMLData(response, "Ask");
-            //calculate average bid
-            float bidAvg = 0;
-            for (float bid : bids) {
-                bidAvg += bid;
-            }
-            bidAvg /= asks.length;
-            System.out.println(String.format("%.4f", bidAvg));
-            //calculate avarage ask
-            float askAvg = 0;
-            for (float ask : asks) {
-                askAvg += ask;
-            }
-            askAvg /= asks.length;
-            //calculate standard deviation
-            float sumOfPowers = 0;
-            for (float ask : asks) {
-                sumOfPowers += (ask - askAvg) * (ask - askAvg);
-            }
-            float standardDeviation = (float) Math.sqrt(sumOfPowers / asks.length);
-            System.out.println(String.format("%.4f", standardDeviation));
+            //calculate and print average bid
+            System.out.println(String.format("%.4f", getAvg(bids)));
+            //calculate and print standard deviation for asks
+            System.out.println(String.format("%.4f", getStandardDeviation(asks)));
         } else {
             System.out.println("SORRY, something went wrong");
         }
+    }
+
+    /**
+     * Calculates average value of values given in an array
+     *
+     * @param - values to calculate average of
+     * @return
+     */
+    private static float getAvg(float[] values) {
+        float sumOfValues = 0;
+        for (float value : values) {
+            sumOfValues += value;
+        }
+        return (sumOfValues / values.length);
+    }
+
+    /**
+     * Calculates standard deviation on population of values, taking desired
+     * value as an avg of all those values
+     *
+     * @param values - values to count standard deviation on
+     * @return
+     */
+    private static float getStandardDeviation(float[] values) {
+        float valuesAvg = getAvg(values);
+        float sumOfPowers = 0;
+        for (float value : values) {
+            sumOfPowers += (value - valuesAvg) * (value - valuesAvg);
+        }
+        return ((float) Math.sqrt(sumOfPowers / values.length));
     }
 
     /**
@@ -85,6 +99,11 @@ public class Apinbp {
         String[] rates = input.split("<" + tag + ">");
         float[] numeralRates = new float[rates.length - 1];
         for (int i = 1; i < rates.length; i++) {
+            /**
+             * NOTE!!! this part assumes response to be 6 letter (1 digit, dot,
+             * and 4 more digits), and it may lose precision if exchange rate
+             * hits 2 digit values
+             */
             numeralRates[i - 1] = Float.parseFloat(rates[i].substring(0, 6));
         }
         return numeralRates;
