@@ -13,11 +13,28 @@ import java.util.Scanner;
  * @author Komabjn
  */
 public class Apinbp {
+    
+    private float[] bids, asks;
+    
+    public void fetchData(String[] input){
+        String url = getAndVerifyInput(input);
+        String rawXml = requestDataFromServer(url);
+        bids = parseXMLData(rawXml, "Bid");
+        asks = parseXMLData(rawXml, "Ask");
+    }
+    
+    public float getAvgBid(){
+        return getAvg(bids);
+    }
+    
+    public float getStandardDeviationFromAsks(){
+        return getStandardDeviation(asks);
+    }
 
     /**
      * Calculates average value of values given in an array
      *
-     * @param - values to calculate average of
+     * @param values    - to calculate average of
      * @return
      */
     public static float getAvg(float[] values) {
@@ -32,7 +49,7 @@ public class Apinbp {
      * Calculates standard deviation on population of values, taking desired
      * value as an avg of all those values
      *
-     * @param values - values to count standard deviation on
+     * @param values    - values to count standard deviation on
      * @return
      */
     public static float getStandardDeviation(float[] values) {
@@ -48,7 +65,7 @@ public class Apinbp {
      * Gets an input from arguments or from console if not supllied, and forms
      * http address to perform request
      *
-     * @param args - args from commandline or command (single word in single
+     * @param args  - args from commandline or command (single word in single
      * segment)
      * @return url representing requested data on api.nbp.pl
      */
@@ -74,7 +91,7 @@ public class Apinbp {
      * This method extracts values out of raw xml
      *
      * @param input - String xml with server response
-     * @param tag - tag in xml after which comes value to be extracted
+     * @param tag   - tag in xml after which comes value to be extracted
      * @return values of particular exchange rates in array
      */
     public static float[] parseXMLData(String input, String tag) {
@@ -94,8 +111,8 @@ public class Apinbp {
     /**
      * This method requests data from server and returns it as a string
      *
-     * @param targetURL url at which GET will be requested
-     * @return String representation of response
+     * @param targetURL - url at which GET will be requested
+     * @return          - String representation of response
      */
     public static String requestDataFromServer(String targetURL) {
         HttpURLConnection connection = null;
