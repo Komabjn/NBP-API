@@ -5,6 +5,8 @@
  */
 package apinbp;
 
+import java.util.Scanner;
+
 /**
  *
  * @author Komabjn
@@ -15,9 +17,22 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        Apinbp exchangeRateFetcher = new Apinbp();
-        exchangeRateFetcher.fetchData(args);
-        System.out.println(String.format("%.4f", exchangeRateFetcher.getAvgBid()));
-        System.out.println(String.format("%.4f", exchangeRateFetcher.getStandardDeviationFromAsks()));
+        try {
+            Apinbp exchangeRateFetcher = new Apinbp();
+            boolean success = exchangeRateFetcher.fetchData(args);
+            Scanner sc = null;
+            //if fetch was unsuccesfull read new  args from console
+            while (!success) {
+                if (sc == null) {
+                    sc = new Scanner(System.in);
+                }
+                args = sc.nextLine().split(" ");
+                success = exchangeRateFetcher.fetchData(args);
+            }
+            System.out.println(String.format("%.4f", exchangeRateFetcher.getAvgBid()));
+            System.out.println(String.format("%.4f", exchangeRateFetcher.getStandardDeviationFromAsks()));
+        } catch (CorruptedServerResponseException csre) {
+            System.err.print(csre.toString());
+        }
     }
 }

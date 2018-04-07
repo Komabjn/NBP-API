@@ -6,8 +6,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import java.util.Scanner;
-
 /**
  *
  * @author Komabjn
@@ -19,18 +17,25 @@ public class Apinbp {
      * currency given in input
      *
      * @param input
+     * @return - true if succeded, false if failed
+     * @throws apinbp.CorruptedServerResponseException - excpetion thrown when server
+     * returns currupted data
      */
-    public void fetchData(String[] input) {
+    public boolean fetchData(String[] input) throws CorruptedServerResponseException {
         String url = getAndVerifyInput(input);
+        if (url == null) {
+            return false;
+        }
         String rawXml = requestDataFromServer(url);
         bids = parseXMLData(rawXml, "Bid");
         asks = parseXMLData(rawXml, "Ask");
+        return true;
     }
 
     /**
      * Returns average buying rate from currently loaded data
-     * 
-     * @return 
+     *
+     * @return
      */
     public float getAvgBid() {
         return getAvg(bids);
@@ -38,13 +43,14 @@ public class Apinbp {
 
     /**
      * Returns standard deviation from selling rate form currently loaded data
-     * 
-     * @return 
+     *
+     * @return
      */
     public float getStandardDeviationFromAsks() {
         return getStandardDeviation(asks);
     }
 
+    //**************************************************************************
     private float[] bids, asks;
 
     /**
@@ -78,26 +84,24 @@ public class Apinbp {
     }
 
     /**
-     * Gets an input from arguments or from console if not supllied, and forms
-     * http address to perform request
+     * Gets an input from arguments and forms http address to perform request
      *
-     * @param args - args from commandline or command (single word in single
-     * segment)
-     * @return url representing requested data on api.nbp.pl
+     * @param input - particular words of input
+     * @return - url for request at api.nbp.pl or null if input was faulty
      */
-    private static String getAndVerifyInput(String[] args) {
+    private static String getAndVerifyInput(String[] input) {
         StringBuilder url = new StringBuilder();
         url.append("http://api.nbp.pl/api/exchangerates/rates/c/");
-        if (args.length == 0) {
-            Scanner sc = new Scanner(System.in);
-            args = sc.nextLine().split(" ");
+        if (input == null) {
+            return null;
         }
-        url.append(args[0]).append("/");
-        if (args.length > 1) {
-            url.append(args[1]).append("/");
+        url.append(input[0]).append("/");
+        if (!(input.length > 1)) {
+            return null;
         }
-        if (args.length > 2) {
-            url.append(args[2]).append("/");
+        url.append(input[1]).append("/");
+        if (input.length > 2) {
+            url.append(input[2]).append("/");
         }
         url.append("?format=xml");
         return url.toString();
@@ -110,8 +114,11 @@ public class Apinbp {
      * @param tag - tag in xml after which comes value to be extracted
      * @return values of particular exchange rates in array
      */
-    private static float[] parseXMLData(String input, String tag) {
+    private static float[] parseXMLData(String input, String tag) throws CorruptedServerResponseException {
         String[] rates = input.split("<" + tag + ">");
+        if (rates.length == 1) {
+            throw new CorruptedServerResponseException();
+        }
         float[] numeralRates = new float[rates.length - 1];
         for (int i = 1; i < rates.length; i++) {
             /**
