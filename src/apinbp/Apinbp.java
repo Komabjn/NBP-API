@@ -5,6 +5,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 /**
  *
@@ -18,15 +22,16 @@ public class Apinbp {
      *
      * @param input
      * @return - true if succeded, false if failed
-     * @throws apinbp.CorruptedServerResponseException - excpetion thrown when server
-     * returns currupted data
+     * @throws apinbp.CorruptedServerResponseException - excpetion thrown when
+     * server returns currupted data
      */
     public boolean fetchData(String[] input) throws CorruptedServerResponseException {
-        String url = getAndVerifyInput(input);
+        String url = verifyInput(input);
         if (url == null) {
             return false;
         }
         String rawXml = requestDataFromServer(url);
+        if(rawXml == null) return false;
         bids = parseXMLData(rawXml, "Bid");
         asks = parseXMLData(rawXml, "Ask");
         return true;
@@ -52,6 +57,8 @@ public class Apinbp {
 
     //**************************************************************************
     private float[] bids, asks;
+
+    private static final String[] ACCEPTED_CURRENCY_CODES = {"USD", "AUD", "CAD", "EUR", "HUF", "CHF", "GBP", "JPY", "CZK", "DKK", "NOK", "SEK", "XDR"};
 
     /**
      * Calculates average value of values given in an array
@@ -89,22 +96,42 @@ public class Apinbp {
      * @param input - particular words of input
      * @return - url for request at api.nbp.pl or null if input was faulty
      */
-    private static String getAndVerifyInput(String[] input) {
-        StringBuilder url = new StringBuilder();
-        url.append("http://api.nbp.pl/api/exchangerates/rates/c/");
-        if (input.length == 0) {
+    private static String verifyInput(String[] input) {
+        try {
+            StringBuilder url = new StringBuilder();
+            url.append("http://api.nbp.pl/api/exchangerates/rates/c/");
+            if (input.length > 1) {
+                boolean didFoundCode = false;
+                for (String code : ACCEPTED_CURRENCY_CODES) {
+                    if (input[0].equalsIgnoreCase(code)) {
+                        didFoundCode = true;
+                        break;
+                    }
+                }
+                if (didFoundCode) {
+                    url.append(input[0]).append("/");
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
+                    LocalDate startTime = LocalDate.parse(input[1], formatter);
+                    if (startTime.isAfter(LocalDate.of(2002, 1, 2)) && startTime.isBefore(LocalDate.now())) {
+                        url.append(startTime.format(formatter)).append("/");
+                        if (input.length > 2) {
+                            LocalDate endTime = LocalDate.parse(input[2], formatter);
+                            if ((startTime.plusDays(93)).isAfter(endTime)) {
+                                url.append(endTime.format(formatter)).append("/");
+                                url.append("?format=xml");
+                                return url.toString();
+                            }
+                        } else {
+                            url.append("?format=xml");
+                            return url.toString();
+                        }
+                    }
+                }
+            }
+            return null;
+        } catch (DateTimeParseException e) {
             return null;
         }
-        url.append(input[0]).append("/");
-        if (!(input.length > 1)) {
-            return null;
-        }
-        url.append(input[1]).append("/");
-        if (input.length > 2) {
-            url.append(input[2]).append("/");
-        }
-        url.append("?format=xml");
-        return url.toString();
     }
 
     /**
