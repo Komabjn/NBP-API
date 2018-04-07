@@ -10,27 +10,9 @@ import java.util.Scanner;
 
 /**
  *
- * @author pawel
+ * @author Komabjn
  */
 public class Apinbp {
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        String url = getAndVerifyInput(args);
-        String response = requestDataFromServer(url);
-        if (response != null) {
-            float[] bids = parseXMLData(response, "Bid");
-            float[] asks = parseXMLData(response, "Ask");
-            //calculate and print average bid
-            System.out.println(String.format("%.4f", getAvg(bids)));
-            //calculate and print standard deviation for asks
-            System.out.println(String.format("%.4f", getStandardDeviation(asks)));
-        } else {
-            System.out.println("SORRY, something went wrong");
-        }
-    }
 
     /**
      * Calculates average value of values given in an array
@@ -38,7 +20,7 @@ public class Apinbp {
      * @param - values to calculate average of
      * @return
      */
-    private static float getAvg(float[] values) {
+    public static float getAvg(float[] values) {
         float sumOfValues = 0;
         for (float value : values) {
             sumOfValues += value;
@@ -53,7 +35,7 @@ public class Apinbp {
      * @param values - values to count standard deviation on
      * @return
      */
-    private static float getStandardDeviation(float[] values) {
+    public static float getStandardDeviation(float[] values) {
         float valuesAvg = getAvg(values);
         float sumOfPowers = 0;
         for (float value : values) {
