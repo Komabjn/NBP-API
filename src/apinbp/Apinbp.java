@@ -92,7 +92,7 @@ public class Apinbp {
     private static String getAndVerifyInput(String[] input) {
         StringBuilder url = new StringBuilder();
         url.append("http://api.nbp.pl/api/exchangerates/rates/c/");
-        if (input == null) {
+        if (input.length == 0) {
             return null;
         }
         url.append(input[0]).append("/");

@@ -25,6 +25,8 @@ public class Main {
             while (!success) {
                 if (sc == null) {
                     sc = new Scanner(System.in);
+                }else{
+                    System.out.println("Wrong input");
                 }
                 args = sc.nextLine().split(" ");
                 success = exchangeRateFetcher.fetchData(args);
