@@ -13,31 +13,47 @@ import java.util.Scanner;
  * @author Komabjn
  */
 public class Apinbp {
-    
-    private float[] bids, asks;
-    
-    public void fetchData(String[] input){
+
+    /**
+     * Performs server request and fetches data from server covering period and
+     * currency given in input
+     *
+     * @param input
+     */
+    public void fetchData(String[] input) {
         String url = getAndVerifyInput(input);
         String rawXml = requestDataFromServer(url);
         bids = parseXMLData(rawXml, "Bid");
         asks = parseXMLData(rawXml, "Ask");
     }
-    
-    public float getAvgBid(){
+
+    /**
+     * Returns average buying rate from currently loaded data
+     * 
+     * @return 
+     */
+    public float getAvgBid() {
         return getAvg(bids);
     }
-    
-    public float getStandardDeviationFromAsks(){
+
+    /**
+     * Returns standard deviation from selling rate form currently loaded data
+     * 
+     * @return 
+     */
+    public float getStandardDeviationFromAsks() {
         return getStandardDeviation(asks);
     }
+
+    private float[] bids, asks;
 
     /**
      * Calculates average value of values given in an array
      *
-     * @param values    - to calculate average of
+     * @param values - to calculate average of
      * @return
      */
-    public static float getAvg(float[] values) {
+    private static float getAvg(float[] values) {
         float sumOfValues = 0;
         for (float value : values) {
             sumOfValues += value;
@@ -49,10 +65,10 @@ public class Apinbp {
      * Calculates standard deviation on population of values, taking desired
      * value as an avg of all those values
      *
-     * @param values    - values to count standard deviation on
+     * @param values - values to count standard deviation on
      * @return
      */
-    public static float getStandardDeviation(float[] values) {
+    private static float getStandardDeviation(float[] values) {
         float valuesAvg = getAvg(values);
         float sumOfPowers = 0;
         for (float value : values) {
@@ -65,11 +81,11 @@ public class Apinbp {
      * Gets an input from arguments or from console if not supllied, and forms
      * http address to perform request
      *
-     * @param args  - args from commandline or command (single word in single
+     * @param args - args from commandline or command (single word in single
      * segment)
      * @return url representing requested data on api.nbp.pl
      */
-    public static String getAndVerifyInput(String[] args) {
+    private static String getAndVerifyInput(String[] args) {
         StringBuilder url = new StringBuilder();
         url.append("http://api.nbp.pl/api/exchangerates/rates/c/");
         if (args.length == 0) {
@@ -91,10 +107,10 @@ public class Apinbp {
      * This method extracts values out of raw xml
      *
      * @param input - String xml with server response
-     * @param tag   - tag in xml after which comes value to be extracted
+     * @param tag - tag in xml after which comes value to be extracted
      * @return values of particular exchange rates in array
      */
-    public static float[] parseXMLData(String input, String tag) {
+    private static float[] parseXMLData(String input, String tag) {
         String[] rates = input.split("<" + tag + ">");
         float[] numeralRates = new float[rates.length - 1];
         for (int i = 1; i < rates.length; i++) {
@@ -112,9 +128,9 @@ public class Apinbp {
      * This method requests data from server and returns it as a string
      *
      * @param targetURL - url at which GET will be requested
-     * @return          - String representation of response
+     * @return - String representation of response
      */
-    public static String requestDataFromServer(String targetURL) {
+    private static String requestDataFromServer(String targetURL) {
         HttpURLConnection connection = null;
         try {
             //Create connection
